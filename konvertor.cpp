@@ -1,4 +1,10 @@
-#include "stdafx.h"
+// konvertor
+// Convert GMSH ABACUS INP file -> INP file for CGX
+// by prool, 2015
+// http://prool.kharkov.org http://calculix.kharkov.org https://github.com/prool/konvertor
+// <proolix@gmail.com>
+
+#include "stdio.h"
 #include "string.h"
 
 #define BUFSIZE 256
@@ -6,6 +12,9 @@
 
 #define tmpfile "tmpfile.txt"
 #define tmpfile2 "tmpfile2.txt"
+
+// global variables
+float scale;
 
 char tolower(char c) // by prool
 {
@@ -92,7 +101,7 @@ void exponentization(char *str)
 int num;
 float x,y,z;
 sscanf(str,"%i,%f,%f,%f",&num,&x,&y,&z);
-sprintf(str,"%i,%.12e,%.12e,%.12e\n",num,x,y,z);
+sprintf(str,"%i,%.12e,%.12e,%.12e\n",num,scale*x,scale*y,scale*z);
 }
 
 void prool_process2(const char*filename, const char *outfile)
@@ -410,8 +419,9 @@ fflush(0);
 int main(int argc, char* argv[])
 {
 	char file1 [BUFSIZE], file2 [BUFSIZE];
-	printf("Konvertor v.0.5 by Prool. http://calculixforwin.com\n");
+	printf("Konvertor v.0.6 by Prool. http://calculix.kharkov.org\n");
 	printf("konvert GMSH ABACUS INP file -> INP file for CGX\n");
+	scale=1;
 	// printf("argc=%i argv[0]=%s\n",argc,argv[0]);
 	if (argc==3)
 	{
@@ -423,8 +433,22 @@ int main(int argc, char* argv[])
 	remove(tmpfile);
 	remove(tmpfile2);
 	}
+	else if (argc==4)
+	{char *pp;
+	pp=argv[1];
+	pp++;
+	if (*pp) sscanf(pp,"%f",&scale);
+	printf("scalefactor=%f\n", scale);
+	sprintf(file1, "%s", argv[2]);
+	sprintf(file2, "%s", argv[3]);
+	prool_process(file1, tmpfile);
+	prool_process2(tmpfile,tmpfile2);
+	prool_process3(tmpfile2,file2);
+	remove(tmpfile);
+	remove(tmpfile2);
+	}
 	else {
-		printf("\nUsage: konvertor inputfilename outputfilename\n");
+		printf("\nUsage: konvertor [-scalefactor] inputfilename outputfilename\n");
 	}
 	// printf("\nPress any key\n"); getchar();
 	return 0;
