@@ -1,8 +1,7 @@
 // konvertor
 // Convert GMSH ABACUS INP file -> INP file for CGX
-// by prool, 2015
-// http://prool.kharkov.org http://calculix.kharkov.org https://github.com/prool/konvertor
-// <proolix@gmail.com>
+// by prool, 2015-2017
+// gpl v2
 
 #include "stdio.h"
 #include "string.h"
@@ -107,8 +106,8 @@ sprintf(str,"%i,%.12e,%.12e,%.12e\n",num,scale*x,scale*y,scale*z);
 void prool_process2(const char*filename, const char *outfile)
 {
 FILE *fp, *fo;
-char buf [BUFSIZE], buf2 [BUFSIZE];
-int status;
+char buf [BUFSIZE], buf2 [BUFSIZE], tmp_buf[BUFSIZE];
+int i, l, status;
 
 status=0; // 0 - status "zero" ("others sections"), 1 - section "NODE", 2 - section type=S4
 
@@ -126,8 +125,10 @@ while(fgets(buf,BUFSIZE,fp))
 
 	if (is_nondigit(buf[0]))
 		{
-#define NODE "*Node"
-		if (!memcmp(buf,NODE,strlen(NODE))) {fputs("*Node,NSET=Nall\n",fo); status=1;}
+		l=strlen(buf);
+		for (i=0;i<l;i++) tmp_buf[i]=tolower(buf[i]);
+#define NODE "*node"
+		if (!memcmp(tmp_buf,NODE,strlen(NODE))) {fputs("*Node,NSET=Nall\n",fo); status=1;}
 		else if (strstr(buf,"type=S4")) 
 			{char strS4[BUFSIZE];
 			strcpy(strS4,buf);
@@ -152,7 +153,7 @@ fclose(fo);
 fflush(0);
 }
 
-#define NODELIST_SIZE 1000
+#define NODELIST_SIZE 30000 // 1000
 int nodelist [NODELIST_SIZE];
 
 void clear_nodelist(void)
